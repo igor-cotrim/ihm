@@ -1,0 +1,41 @@
+{
+  "versao": "0.1",
+  "motoristas": [
+    {
+      "nome": "Faustão",
+      "cadastro": true,
+      "cobranca": "R$ 10,00",
+      "fotos": [
+        "./faces/faustao-1.jpg",
+        "./faces/faustao-2.jpg",
+        "./faces/faustao-3.jpg"
+      ],
+      "status": "há crédito",
+      "liberar": true
+    },
+    {
+      "nome": "Fabio Assunção",
+      "cadastro": true,
+      "cobranca": "R$ 20,00",
+      "fotos": [
+        "./faces/fabio-assuncao-1.jpg",
+        "./faces/fabio-assuncao-2.jpg",
+        "./faces/fabio-assuncao-3.jpg"
+      ],
+      "status": "há crédito",
+      "liberar": true
+    },
+    {
+      "nome": "Lazaro Ramos",
+      "cadastro": true,
+      "cobranca": "R$ 12,00",
+      "fotos": [
+        "./faces/lazaro-ramos-1.jpg",
+        "./faces/lazaro-ramos-2.jpg",
+        "./faces/lazaro-ramos-3.jpg"
+      ],
+      "status": "há crédito",
+      "liberar": true
+    }
+  ]
+}
