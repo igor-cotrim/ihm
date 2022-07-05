@@ -6,9 +6,9 @@
       "cadastro": true,
       "cobranca": "R$ 10,00",
       "fotos": [
-        "./faces/faustao-1.jpg",
-        "./faces/faustao-2.jpg",
-        "./faces/faustao-3.jpg"
+        "./faces/faustao1.jpg",
+        "./faces/faustao2.jpg",
+        "./faces/faustao3.jpg"
       ],
       "status": "há crédito",
       "liberar": true
@@ -18,9 +18,9 @@
       "cadastro": true,
       "cobranca": "R$ 20,00",
       "fotos": [
-        "./faces/fabio-assuncao-1.jpg",
-        "./faces/fabio-assuncao-2.jpg",
-        "./faces/fabio-assuncao-3.jpg"
+        "./faces/fabio1.jpg",
+        "./faces/fabio2.jpg",
+        "./faces/fabio3.jpg"
       ],
       "status": "há crédito",
       "liberar": true
@@ -30,9 +30,9 @@
       "cadastro": true,
       "cobranca": "R$ 12,00",
       "fotos": [
-        "./faces/lazaro-ramos-1.jpg",
-        "./faces/lazaro-ramos-2.jpg",
-        "./faces/lazaro-ramos-3.jpg"
+        "./faces/lazaro1.jpg",
+        "./faces/lazaro2.jpg",
+        "./faces/lazaro3.jpg"
       ],
       "status": "há crédito",
       "liberar": true

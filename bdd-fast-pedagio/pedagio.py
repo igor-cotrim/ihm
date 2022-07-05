@@ -3,22 +3,22 @@ import secrets
 import random
 import json
 
-FOTOS_MOTORISTAS = [
-  "./faces/fabio-assuncao-1.jpg",
-  "./faces/fabio-assuncao-2.jpg",
-  "./faces/fabio-assuncao-3.jpg",
-  "./faces/faustao-1.jpg",
-  "./faces/faustao-2.jpg",
-  "./faces/faustao-3.jpg",
-  "./faces/lazaro-ramos-1.jpg",
-  "./faces/lazaro-ramos-2.jpg",
-  "./faces/lazaro-ramos-3.jpg",
-  "./faces/rodrigo-faro-1.jpg",
-  "./faces/rodrigo-faro-2.jpg",
-  "./faces/rodrigo-faro-3.jpg"
-]
-
 ARQUIVO_CONFIGURACAO = "./configuracao.json"
+
+FOTOS_MOTORISTAS = [
+  "./faces/fabio1.jpg",
+  "./faces/fabio2.jpg",
+  "./faces/fabio3.jpg",
+  "./faces/faustao1.jpg",
+  "./faces/faustao2.jpg",
+  "./faces/faustao3.jpg",
+  "./faces/lazaro1.jpg",
+  "./faces/lazaro2.jpg",
+  "./faces/lazaro3.jpg",
+  "./faces/rodrigo1.jpg",
+  "./faces/rodrigo2.jpg",
+  "./faces/rodrigo3.jpg"
+]
 
 PROBABILIDADE_DE_SER_CADASTRADO = 60
 PROBABILIDADE_DE_TER_CREDITO = 70 
@@ -36,9 +36,12 @@ TEMPO_LIBERACAO = 50
 
 
 def preparar():
+  global configuracao
+
   configuracao = None
   with open(ARQUIVO_CONFIGURACAO, "r") as arquivo_configuracao:
     configuracao = json.load(arquivo_configuracao)
+
     if configuracao:
       print("---------------------------------------------------------------")
       print("------------------------FAST-PEDÁDIO---------------------------")
@@ -47,17 +50,12 @@ def preparar():
       print("versão:", configuracao["versao"])
       print("---------------------------------------------------------------")
 
-  motoristas_reconhecidos = {}
-  motoristas_cadastrados = {}
-  mototoristas_com_creditos = {}
-  mototoristas_para_liberar = {}
-
-  return configuracao, motoristas_reconhecidos, motoristas_cadastrados, mototoristas_com_creditos, mototoristas_para_liberar
+  return (configuracao != None), configuracao
 
 
-def simular_motorista(foto_motorista):
+def simular_motorista(foto):
   motorista = {
-    "foto": foto_motorista,
+    "foto": foto,
     "cadastrado": None
   }
 
@@ -101,154 +99,92 @@ def imprimir_motorista(motorista_indentificado):
   print("****************************************************************")
 
 
-def reconhecer_motorista(env):
-  global motoristas_reconhecidos
-  
-  while True:
+def reconhecer_motorista(motoristas_reconhecidos):
+  motorista = simular_motorista()
+  reconhecido, motorista_indentificado = indentificar_motorista(motorista)
+
+  if reconhecido:
+    id_atendimento = secrets.token_hex(nbytes=16).upper()
+    motoristas_reconhecidos[id_atendimento] = motorista_indentificado
+
     print("---------------------------------------------------------------")
-    print("ciclo/tempo", env.now)
-    print("reconhecendo um motorista cadastrado...")
+    print("motorista reconhecido, imprimindo dados do motorista...")
+    imprimir_motorista(motorista_indentificado)
+  else:
     print("---------------------------------------------------------------")
-
-    motorista = simular_motorista()
-    reconhecido, motorista_indentificado = indentificar_motorista(motorista)
-
-    if reconhecido:
-      id_atendimento = secrets.token_hex(nbytes=16).upper()
-      motoristas_reconhecidos[id_atendimento] = motorista_indentificado
-
-      print("---------------------------------------------------------------")
-      print("motorista reconhecido, imprimindo dados do motorista...")
-      imprimir_motorista(motorista_indentificado)
-    else:
-      print("---------------------------------------------------------------")
-      print("motorista não reconhecido")
-
-    yield env.timeout(TEMPO_ENTRE_MOTORISTAS)
+    print("motorista não reconhecido")
 
 
-def identificar_cadastro(env):
-  global motoristas_reconhecidos
-  global motoristas_cadastrados
+def identificar_cadastro(motoristas_reconhecidos, motoristas_cadastrados, probabilidade_de_ser_cadastrado):
+  total_motoristas_cadastrados = 0
+
+  if len(motoristas_reconhecidos):
+    for id_atendimento, motorista in list(motoristas_reconhecidos.items()):
+      cadastro_reconhecido = (random.randint(1, 100) <= probabilidade_de_ser_cadastrado)
+
+      if cadastro_reconhecido:
+        motoristas_cadastrados[id_atendimento] = motorista
+        motoristas_reconhecidos.pop(id_atendimento)
+        print("---------------------------------------------------------------")
+        print("motorista", motorista["motoristas"]["nome"], "já é cadastrado")
+        print("---------------------------------------------------------------")
+
+        total_motoristas_cadastrados += 1
+
+  return total_motoristas_cadastrados
+
+
+def verificar_creditos(motoristas_cadastrados, mototoristas_com_creditos, probabilidade_de_ter_credito):
+  total_verificacao_de_creditos = 0
   
-  while True:
-    if len(motoristas_reconhecidos):
-      print("---------------------------------------------------------------")
-      print("ciclo/tempo", env.now)
-      print("verificando cadastro do motorista...")
-      print("---------------------------------------------------------------")
+  if len(motoristas_cadastrados):
+    for id_atendimento, motorista in list(motoristas_cadastrados.items()):
+      tem_credito = (random.randint(1, 100) <= probabilidade_de_ter_credito)
 
-      total_motoristas_cadastrados = 0
+      if tem_credito:
+        mototoristas_com_creditos[id_atendimento] = motorista
+        motoristas_cadastrados.pop(id_atendimento)
+        print("---------------------------------------------------------------")
+        print(motorista["motoristas"]["nome"], "tem creditos")
+        print("---------------------------------------------------------------")
 
-      for id_atendimento, motorista in list(motoristas_reconhecidos.items()):
-        cadastro_reconhecido = (random.randint(1, 100) <= PROBABILIDADE_DE_SER_CADASTRADO)
-        if cadastro_reconhecido:
-          motoristas_cadastrados[id_atendimento] = motorista
-          motoristas_reconhecidos.pop(id_atendimento)
-          print("---------------------------------------------------------------")
-          print("motorista", motorista["motoristas"]["nome"], "já é cadastrado")
-          print("---------------------------------------------------------------")
-          total_motoristas_cadastrados += 1
+        total_verificacao_de_creditos += 1
 
-      timeout = 1
-      if total_motoristas_cadastrados > 0:
-        timeout = total_motoristas_cadastrados * TEMPO_RECONHECIMENTO_CADASTRO
-
-      yield env.timeout(timeout)
-    else:
-      yield env.timeout(1)
+  return total_verificacao_de_creditos
 
 
-def verificar_creditos(env):
-  global motoristas_cadastrados
-  global mototoristas_com_creditos
-  
-  while True:
-    if len(motoristas_cadastrados):
-      print("---------------------------------------------------------------")
-      print("ciclo/tempo", env.now)
-      print("verificando se motorista tem creditos")
-      print("---------------------------------------------------------------")
+def debitar_valor(mototoristas_com_creditos, mototoristas_para_liberar, probabilidade_cobranca):
+  total_cobrancas = 0
 
-      total_verificacao_de_creditos = 0
+  if len(mototoristas_com_creditos):
+    for id_atendimento, motorista in list(mototoristas_com_creditos.items()):
+      cobrar_motorista = (random.randint(1, 100) <= probabilidade_cobranca)
 
-      for id_atendimento, motorista in list(motoristas_cadastrados.items()):
-        tem_credito = (random.randint(1, 100) <= PROBABILIDADE_DE_TER_CREDITO)
-        if tem_credito:
-          mototoristas_com_creditos[id_atendimento] = motorista
-          motoristas_cadastrados.pop(id_atendimento)
-          print("---------------------------------------------------------------")
-          print(motorista["motoristas"]["nome"], "tem creditos")
-          print("---------------------------------------------------------------")
-          total_verificacao_de_creditos += 1
+      if cobrar_motorista:
+        mototoristas_para_liberar[id_atendimento] = motorista
+        mototoristas_com_creditos.pop(id_atendimento)
+        print("---------------------------------------------------------------")
+        print(motorista["motoristas"]["nome"], "esta sendo cobrando no valor de", motorista["motoristas"]["cobranca"])
+        print("---------------------------------------------------------------")
+        
+        total_cobrancas += 1
 
-      timeout = 1
-      if total_verificacao_de_creditos > 0:
-        timeout = total_verificacao_de_creditos * TEMPO_HA_CREDITO
-
-      yield env.timeout(timeout)
-    else:
-      yield env.timeout(1)
+  return total_cobrancas
 
 
-def debitar_valor(env):
-  global mototoristas_com_creditos
-  global mototoristas_para_liberar
+def liberar_motorista(mototoristas_para_liberar, probabilidade_de_liberacao):
+  total_liberacoes = 0
 
-  while True:
-    if len(mototoristas_com_creditos):
-      print("---------------------------------------------------------------")
-      print("ciclo/tempo", env.now)
-      print("fazendo cobrança do valor")
-      print("---------------------------------------------------------------")
+  if len(mototoristas_para_liberar):
+    for id_atendimento, motorista in list(mototoristas_para_liberar.items()):
+      libera_motorista = (random.randint(1, 100) <= probabilidade_de_liberacao)
 
-      total_cobrancas = 0
+      if libera_motorista:
+        print("---------------------------------------------------------------")
+        print(motorista["motoristas"]["nome"] , "esta sendo liberado")
+        print("---------------------------------------------------------------")
+        mototoristas_para_liberar.pop(id_atendimento)
 
-      for id_atendimento, motorista in list(mototoristas_com_creditos.items()):
-        cobrar_motorista = (random.randint(1, 100) <= PROBABILIDADE_COBRANCA)
+        total_liberacoes += 1
 
-        if cobrar_motorista:
-          mototoristas_para_liberar[id_atendimento] = motorista
-          mototoristas_com_creditos.pop(id_atendimento)
-          print("---------------------------------------------------------------")
-          print(motorista["motoristas"]["nome"], "esta sendo cobrando no valor de", motorista["motoristas"]["cobranca"])
-          print("---------------------------------------------------------------")
-          
-          total_cobrancas += 1
-
-      timeout = 1
-      if total_cobrancas > 0:
-        timeout = total_cobrancas * TEMPO_DEBITAR_VALOR
-
-      yield env.timeout(timeout)
-    else:
-      yield env.timeout(1)
-
-
-def liberar_motorista(env):
-  global mototoristas_para_liberar
-
-  while True:
-    if len(mototoristas_para_liberar):
-      print("---------------------------------------------------------------")
-      print("liberacao do motorista no pedagio...", env.now)
-
-      total_liberacoes = 0
-      for id_atendimento, motorista in list(mototoristas_para_liberar.items()):
-        libera_motorista = (random.randint(1, 100) <= PROBABILIDADE_DE_LIBERACAO)
-
-        if libera_motorista:
-          print("---------------------------------------------------------------")
-          print(motorista["motoristas"]["nome"] , "esta sendo liberado")
-          print("---------------------------------------------------------------")
-          
-          mototoristas_para_liberar.pop(id_atendimento)
-          total_liberacoes += 1
-
-      timeout = 1
-      if total_liberacoes > 0:
-        timeout = total_liberacoes * TEMPO_LIBERACAO
-
-      yield env.timeout(timeout)
-    else:
-      yield env.timeout(1)
+  return total_liberacoes

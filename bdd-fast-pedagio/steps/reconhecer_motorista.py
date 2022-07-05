@@ -1,17 +1,20 @@
-from behave import *
+from behave import given, when, then
 from pedagio import *
 
-@given("o ambiente de reconhecimento foi preparado com sucesso")
+@given("o ambiente seja preparado com sucesso")
 def given_ambiente_reconhecimento_preparado(context):
-  context.configuracao, context.motoristas_reconhecidos, context.motoristas_cadastrados, context.mototoristas_com_creditos, context.mototoristas_para_liberar = preparar()
+  preparado, context.configuracao = preparar()
 
   context.motoristas_reconhecidos = {}
+  context.motoristas_cadastrados = {}
+  context.mototoristas_com_creditos = {}
+  context.mototoristas_para_liberar = {}
 
-  assert context.configuracao != None
+  assert preparado is True
 
-@when("a foto {foto_motorista} de um motorista for capturada")
-def when_foto_motorista_capturada(context, foto_motorista):
-  motorista = simular_motorista(foto_motorista)
+@when("a foto {foto} de um motorista for capturada")
+def when_foto_capturada(context, foto):
+  motorista = simular_motorista(foto)
   context.reconhecido, context.motorista_indentificado = reconhecer_motorista(motorista, context.configuracao)
 
   assert True
@@ -22,3 +25,7 @@ def then_motorista_reconhecido(context):
   context.motoristas_reconhecidos[id_atendimento] = context.motorista_indentificado
 
   assert context.reconhecido is True
+
+@then("nenhum motorista deve ser reconhecido")
+def then_motorista_nao_reconhecido(context):
+  assert context.reconhecido is False
