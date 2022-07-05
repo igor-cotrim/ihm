@@ -15,7 +15,7 @@ def given_ambiente_reconhecimento_preparado(context):
 @when("a foto {foto} de um motorista for capturada")
 def when_foto_capturada(context, foto):
   motorista = simular_motorista(foto)
-  context.reconhecido, context.motorista_indentificado = reconhecer_motorista(motorista, context.configuracao)
+  context.reconhecido, context.motorista_indentificado = indentificar_motorista(motorista, context.configuracao)
 
   assert True
 

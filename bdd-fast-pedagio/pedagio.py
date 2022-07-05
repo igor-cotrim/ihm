@@ -145,7 +145,7 @@ def verificar_creditos(motoristas_cadastrados, mototoristas_com_creditos, probab
         mototoristas_com_creditos[id_atendimento] = motorista
         motoristas_cadastrados.pop(id_atendimento)
         print("---------------------------------------------------------------")
-        print(motorista["motoristas"]["nome"], "tem creditos")
+        print("motorista", motorista["motoristas"]["nome"], "tem creditos")
         print("---------------------------------------------------------------")
 
         total_verificacao_de_creditos += 1
