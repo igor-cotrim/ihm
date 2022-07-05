@@ -15,14 +15,14 @@ def given_ambiente_reconhecimento_preparado(context):
 @when("a foto {foto} de um motorista for capturada")
 def when_foto_capturada(context, foto):
   motorista = simular_motorista(foto)
-  context.reconhecido, context.motorista_indentificado = indentificar_motorista(motorista, context.configuracao)
+  context.reconhecido, context.motorista = indentificar_motorista(motorista, context.configuracao)
 
   assert True
 
 @then("um motorista deve ser reconhecido")
 def then_motorista_reconhecido(context):
   id_atendimento = secrets.token_hex(nbytes=16).upper()
-  context.motoristas_reconhecidos[id_atendimento] = context.motorista_indentificado
+  context.motoristas_reconhecidos[id_atendimento] = context.motorista
 
   assert context.reconhecido is True
 

@@ -20,35 +20,12 @@ FOTOS_MOTORISTAS = [
   "./faces/rodrigo3.jpg"
 ]
 
-PROBABILIDADE_DE_SER_CADASTRADO = 60
-PROBABILIDADE_DE_TER_CREDITO = 70 
-PROBABILIDADE_COBRANCA = 50
-PROBABILIDADE_DE_LIBERACAO = 30
-
-# CAPACIDADE_MAXIMA_ESTACIONAMENTO = 10
-
-TEMPO_ENTRE_MOTORISTAS = 300
-TEMPO_RECONHECIMENTO_CADASTRO = 60
-TEMPO_HA_CREDITO = 60
-TEMPO_VERIFICACAO_DE_CREDITOS = 60
-TEMPO_DEBITAR_VALOR = 30
-TEMPO_LIBERACAO = 50
-
-
 def preparar():
   global configuracao
 
   configuracao = None
   with open(ARQUIVO_CONFIGURACAO, "r") as arquivo_configuracao:
     configuracao = json.load(arquivo_configuracao)
-
-    if configuracao:
-      print("---------------------------------------------------------------")
-      print("------------------------FAST-PEDÁDIO---------------------------")
-      print("---------------------------------------------------------------")
-      print("Arquivos de configuração sendo carregados")
-      print("versão:", configuracao["versao"])
-      print("---------------------------------------------------------------")
 
   return (configuracao != None), configuracao
 
@@ -124,7 +101,7 @@ def identificar_cadastro(motoristas_reconhecidos, motoristas_cadastrados, probab
 
       if cadastro_reconhecido:
         motoristas_cadastrados[id_atendimento] = motorista
-        motoristas_reconhecidos.pop(id_atendimento)
+
         print("---------------------------------------------------------------")
         print("motorista", motorista["motoristas"]["nome"], "já é cadastrado")
         print("---------------------------------------------------------------")
@@ -134,16 +111,15 @@ def identificar_cadastro(motoristas_reconhecidos, motoristas_cadastrados, probab
   return total_motoristas_cadastrados
 
 
-def verificar_creditos(motoristas_cadastrados, mototoristas_com_creditos, probabilidade_de_ter_credito):
+def verificar_creditos(motoristas_reconhecidos, motoristas_cadastrados, probabilidade_de_ter_credito):
   total_verificacao_de_creditos = 0
   
-  if len(motoristas_cadastrados):
-    for id_atendimento, motorista in list(motoristas_cadastrados.items()):
+  if len(motoristas_reconhecidos):
+    for id_atendimento, motorista in list(motoristas_reconhecidos.items()):
       tem_credito = (random.randint(1, 100) <= probabilidade_de_ter_credito)
 
       if tem_credito:
-        mototoristas_com_creditos[id_atendimento] = motorista
-        motoristas_cadastrados.pop(id_atendimento)
+        motoristas_cadastrados[id_atendimento] = motorista
         print("---------------------------------------------------------------")
         print("motorista", motorista["motoristas"]["nome"], "tem creditos")
         print("---------------------------------------------------------------")
@@ -153,16 +129,15 @@ def verificar_creditos(motoristas_cadastrados, mototoristas_com_creditos, probab
   return total_verificacao_de_creditos
 
 
-def debitar_valor(mototoristas_com_creditos, mototoristas_para_liberar, probabilidade_cobranca):
+def debitar_valor(motoristas_reconhecidos, motoristas_cadastrados, probabilidade_cobranca):
   total_cobrancas = 0
 
-  if len(mototoristas_com_creditos):
-    for id_atendimento, motorista in list(mototoristas_com_creditos.items()):
+  if len(motoristas_reconhecidos):
+    for id_atendimento, motorista in list(motoristas_reconhecidos.items()):
       cobrar_motorista = (random.randint(1, 100) <= probabilidade_cobranca)
 
       if cobrar_motorista:
-        mototoristas_para_liberar[id_atendimento] = motorista
-        mototoristas_com_creditos.pop(id_atendimento)
+        motoristas_cadastrados[id_atendimento] = motorista
         print("---------------------------------------------------------------")
         print(motorista["motoristas"]["nome"], "esta sendo cobrando no valor de", motorista["motoristas"]["cobranca"])
         print("---------------------------------------------------------------")
@@ -172,18 +147,18 @@ def debitar_valor(mototoristas_com_creditos, mototoristas_para_liberar, probabil
   return total_cobrancas
 
 
-def liberar_motorista(mototoristas_para_liberar, probabilidade_de_liberacao):
+def liberar_motorista(motoristas_reconhecidos, probabilidade_de_liberacao):
   total_liberacoes = 0
 
-  if len(mototoristas_para_liberar):
-    for id_atendimento, motorista in list(mototoristas_para_liberar.items()):
+  if len(motoristas_reconhecidos):
+    for id_atendimento, motorista in list(motoristas_reconhecidos.items()):
       libera_motorista = (random.randint(1, 100) <= probabilidade_de_liberacao)
 
       if libera_motorista:
         print("---------------------------------------------------------------")
         print(motorista["motoristas"]["nome"] , "esta sendo liberado")
         print("---------------------------------------------------------------")
-        mototoristas_para_liberar.pop(id_atendimento)
+        motoristas_reconhecidos.pop(id_atendimento)
 
         total_liberacoes += 1
 
