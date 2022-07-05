@@ -1,7 +1,6 @@
 import face_recognition
 import secrets
 import random
-import simpy
 import json
 
 FOTOS_MOTORISTAS = [
@@ -37,8 +36,6 @@ TEMPO_LIBERACAO = 50
 
 
 def preparar():
-  global configuracao
-
   configuracao = None
   with open(ARQUIVO_CONFIGURACAO, "r") as arquivo_configuracao:
     configuracao = json.load(arquivo_configuracao)
@@ -50,32 +47,24 @@ def preparar():
       print("versão:", configuracao["versao"])
       print("---------------------------------------------------------------")
 
-  global motoristas_reconhecidos
   motoristas_reconhecidos = {}
-
-  global motoristas_cadastrados
   motoristas_cadastrados = {}
-
-  global mototoristas_com_creditos
   mototoristas_com_creditos = {}
-
-  global mototoristas_para_liberar
   mototoristas_para_liberar = {}
 
+  return configuracao, motoristas_reconhecidos, motoristas_cadastrados, mototoristas_com_creditos, mototoristas_para_liberar
 
-def simular_motorista():
+
+def simular_motorista(foto_motorista):
   motorista = {
-    "foto": random.choice(FOTOS_MOTORISTAS),
+    "foto": foto_motorista,
     "cadastrado": None
   }
 
   return motorista
 
 
-def indentificar_motorista(motorista):
-  global configuracao
-  global gerador_dados_falsos
-
+def indentificar_motorista(motorista, configuracao):
   print("iniciando o reconhecimento de motoristas...")
   foto_motorista = face_recognition.load_image_file(motorista["foto"])
   encoding_foto_motorista = face_recognition.face_encodings(foto_motorista)[0]
@@ -263,15 +252,3 @@ def liberar_motorista(env):
       yield env.timeout(timeout)
     else:
       yield env.timeout(1)
-
-
-if __name__ == "__main__":
-  preparar()
-
-  env = simpy.Environment()
-  env.process(reconhecer_motorista(env))
-  env.process(identificar_cadastro(env))
-  env.process(verificar_creditos(env))
-  env.process(debitar_valor(env))
-  env.process(liberar_motorista(env))
-  env.run(until=10000)
